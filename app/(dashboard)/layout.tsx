@@ -2,26 +2,20 @@
 
 import { useEffect } from "react"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
 import { LogOut, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { LiveStatus } from "@/components/live-status"
 import { useAuth } from "@/lib/auth-context"
-import { LiveMetricsProvider, useLiveMetricsContext } from "@/lib/live-metrics-context"
-import { initials } from "@/lib/utils"
+import { cn, initials } from "@/lib/utils"
 
-const NAV_LINKS = [
-  { label: "Overview", href: "#overview" },
-  { label: "Stage Performance", href: "#stages" },
-  { label: "Trends", href: "#trends" },
-  { label: "Live Queue", href: "#queue" },
-]
+const NAV_LINKS = [{ label: "Billing TAT", href: "/billing" }]
 
 function DashboardHeader() {
   const router = useRouter()
+  const pathname = usePathname()
   const { user, logout } = useAuth()
-  const { snapshot, connected } = useLiveMetricsContext()
 
   const handleLogout = () => {
     logout()
@@ -47,18 +41,20 @@ function DashboardHeader() {
 
         <nav className="hidden items-center gap-1 lg:flex">
           {NAV_LINKS.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
-              className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className={cn(
+                "rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-foreground",
+                pathname === link.href ? "bg-accent font-medium text-foreground" : "text-muted-foreground"
+              )}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <LiveStatus connected={connected} updatedAt={snapshot?.generatedAt} />
           <ThemeToggle />
           <div className="hidden items-center gap-2.5 rounded-full border py-1 pl-1 pr-3 md:flex">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
@@ -109,11 +105,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <LiveMetricsProvider>
-      <div className="min-h-screen bg-muted/30">
-        <DashboardHeader />
-        <main className="mx-auto max-w-[1600px] px-4 py-6 lg:px-6">{children}</main>
-      </div>
-    </LiveMetricsProvider>
+    <div className="min-h-screen bg-muted/30">
+      <DashboardHeader />
+      <main className="mx-auto max-w-[1600px] px-4 py-6 lg:px-6">{children}</main>
+    </div>
   )
 }
