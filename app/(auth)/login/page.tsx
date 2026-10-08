@@ -56,7 +56,7 @@ export default function LoginPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-wmmc" />
       </div>
     )
   }
@@ -81,41 +81,35 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
       <div className="bg-grid absolute inset-0 opacity-60" />
-      <div className="absolute -left-40 -top-40 h-[30rem] w-[30rem] rounded-full bg-primary/20 blur-3xl" />
-      <div className="absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-info/10 blur-3xl" />
+      <div className="absolute -left-40 -top-40 h-[30rem] w-[30rem] rounded-full bg-wmmc-light/40 blur-3xl" />
+      <div className="absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-wmmc/15 blur-3xl" />
 
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
-        className="relative z-10 grid w-full max-w-5xl overflow-hidden rounded-2xl border bg-card shadow-2xl lg:grid-cols-[1.1fr_1fr]"
+        className="relative z-10 grid w-full max-w-md overflow-hidden rounded-2xl border bg-card shadow-2xl lg:max-w-5xl lg:grid-cols-[1.1fr_1fr]"
       >
-        <div className="relative hidden flex-col justify-between bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-700 p-10 text-white lg:flex">
+        <div className="relative hidden flex-col justify-between bg-wmmc p-10 text-white lg:flex">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(154,219,255,0.45),transparent_55%)]" />
           <div className="bg-grid absolute inset-0 opacity-10" />
           <div className="relative space-y-8">
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-white p-2.5 shadow-lg">
-                <Image
-                  src="/2022-West-Metro-logo-with-MPH.png"
-                  alt="West Metro Medical Center"
-                  width={44}
-                  height={44}
-                  className="h-11 w-auto object-contain"
-                />
-              </div>
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-widest text-emerald-200">
-                  West Metro Medical Center
-                </p>
-                <p className="text-xs text-emerald-100/70">MPH · mywmportal</p>
-              </div>
+            <div>
+              <Image
+                src="/login-logo.png"
+                alt="West Metro Medical Center"
+                width={1725}
+                height={417}
+                className="w-60 object-contain"
+              />
+              <p className="mt-3 text-xs text-wmmc-light/70">MPH · mywmportal</p>
             </div>
 
             <div className="space-y-3">
               <h1 className="text-balance text-3xl font-bold leading-tight">
                 Discharge Command Center
               </h1>
-              <p className="max-w-sm text-sm leading-relaxed text-emerald-100/80">
+              <p className="max-w-sm text-sm leading-relaxed text-white/80">
                 Real-time visibility into every stage of the inpatient discharge process for the
                 Management Committee.
               </p>
@@ -125,35 +119,35 @@ export default function LoginPage() {
               {FEATURES.map((feature) => (
                 <li key={feature.title} className="flex items-start gap-3">
                   <div className="rounded-lg bg-white/10 p-2">
-                    <feature.icon className="h-4 w-4 text-emerald-200" />
+                    <feature.icon className="h-4 w-4 text-wmmc-light" />
                   </div>
                   <div>
                     <p className="text-sm font-medium">{feature.title}</p>
-                    <p className="text-xs text-emerald-100/70">{feature.text}</p>
+                    <p className="text-xs text-wmmc-light/70">{feature.text}</p>
                   </div>
                 </li>
               ))}
             </ul>
           </div>
 
-          <p className="relative text-xs text-emerald-100/60">
+          <p className="relative text-xs text-wmmc-light/60">
             Information Technology Department · For authorized personnel only
           </p>
         </div>
 
         <div className="flex flex-col justify-center p-8 sm:p-10">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
+          <div className="-mx-8 -mt-8 mb-8 bg-wmmc px-8 py-6 sm:-mx-10 sm:-mt-10 sm:mb-10 sm:px-10 lg:hidden">
             <Image
-              src="/2022-West-Metro-logo-with-MPH.png"
+              src="/login-logo.png"
               alt="West Metro Medical Center"
-              width={40}
-              height={40}
-              className="h-10 w-auto object-contain"
+              width={1725}
+              height={417}
+              className="h-8 w-auto object-contain"
             />
-            <div>
-              <p className="text-sm font-semibold">Discharge Command Center</p>
-              <p className="text-[11px] text-muted-foreground">West Metro Medical Center · MPH</p>
-            </div>
+            <p className="mt-4 text-sm font-semibold text-white">Discharge Command Center</p>
+            <p className="mt-0.5 text-[11px] text-wmmc-light/80">
+              West Metro Medical Center · MPH
+            </p>
           </div>
 
           <div className="mb-8 space-y-2">
@@ -181,7 +175,7 @@ export default function LoginPage() {
                 value={employeeNumber}
                 onChange={(event) => setEmployeeNumber(event.target.value)}
                 required
-                className="h-11"
+                className="h-11 focus-visible:ring-wmmc/40"
               />
             </div>
 
@@ -195,7 +189,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
-                  className="h-11 pr-10"
+                  className="h-11 pr-10 focus-visible:ring-wmmc/40"
                 />
                 <button
                   type="button"
@@ -208,7 +202,11 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button type="submit" disabled={loading} className="h-11 w-full text-base">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="h-11 w-full bg-wmmc text-base text-white hover:bg-wmmc/90"
+            >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -227,7 +225,7 @@ export default function LoginPage() {
             <p>Access is limited to authorized personnel.</p>
             <button
               type="button"
-              className="mx-auto flex items-center gap-1 text-primary transition-colors hover:underline"
+              className="mx-auto flex items-center gap-1 text-wmmc transition-colors hover:underline dark:text-wmmc-light"
               onClick={() => (window.location.href = "mailto:infotech@westmetro.com.ph")}
             >
               <HelpCircle className="h-3 w-3" />

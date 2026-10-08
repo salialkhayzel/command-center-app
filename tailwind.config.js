@@ -29,6 +29,10 @@ export default {
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",
         info: "hsl(var(--info))",
+        wmmc: {
+          DEFAULT: "#20448e",
+          light: "#9adbff",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",

@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description:
     "Real-time inpatient discharge process monitoring for the Management Committee",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/favicon_wmmc.png",
+    apple: "/favicon_wmmc.png",
   },
 }
 
