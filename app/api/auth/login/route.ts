@@ -76,6 +76,9 @@ export async function POST(request: NextRequest) {
       position: string | null
     } | null = null
 
+    let failureReason = "user not found"
+    let dbUnreachable = false
+
     try {
       const { getMysqlDb } = await import("@/lib/db-mysql")
       const mysqlPool = await getMysqlDb()
@@ -92,10 +95,13 @@ export async function POST(request: NextRequest) {
         const hashedPassword = passwordHash(password)
         if (safeEqual(String(user.emppass || ""), hashedPassword)) {
           dbUser = user
+        } else {
+          failureReason = "password mismatch"
         }
       }
     } catch (dbErr) {
       console.error("Login DB error:", dbErr)
+      dbUnreachable = true
       if (process.env.NODE_ENV !== "production") {
         const mockUser = DEV_MOCK_USERS.find(
           (user) => user.empno === empno && user.password === password
@@ -107,6 +113,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (!dbUser) {
+      console.error(
+        `Login failed for empno=${empno}: ${dbUnreachable ? "database unreachable (check .env and network)" : failureReason}`
+      )
       return errorResponse("Invalid employee number or password", 401)
     }
 
