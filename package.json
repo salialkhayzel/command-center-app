@@ -7,6 +7,10 @@
     "dev": "npm run clean && next dev -p 8888",
     "build": "npm run clean && next build",
     "start": "next start -p 8888",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:restart": "pm2 restart ecosystem.config.js --update-env",
+    "pm2:stop": "pm2 stop ecosystem.config.js",
+    "pm2:logs": "pm2 logs command-center-app",
     "lint": "next lint"
   },
   "dependencies": {
