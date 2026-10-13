@@ -4,7 +4,8 @@ import { useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LogOut, Loader2 } from "lucide-react"
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
+import { ChevronDown, LogOut, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LiveStatus } from "@/components/live-status"
@@ -17,8 +18,11 @@ const NAV_LINKS = [
   { label: "Stage Performance", href: "/overview#stages" },
   { label: "Trends", href: "/overview#trends" },
   { label: "Doctor Approval", href: "/overview#doctor-approval" },
-  { label: "Live Queue", href: "/overview#queue" },
-  { label: "Clearance", href: "/clearance" },
+]
+
+const CLEARANCE_LINKS = [
+  { label: "Nursing Clearance", href: "/overview#nursing-clearance" },
+  { label: "Ancillary Clearance", href: "/overview#ancillary-clearance" },
 ]
 
 function DashboardHeader() {
@@ -62,6 +66,36 @@ function DashboardHeader() {
               {link.label}
             </Link>
           ))}
+
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                Clearances
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                align="start"
+                sideOffset={6}
+                className="z-50 min-w-[200px] rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
+              >
+                {CLEARANCE_LINKS.map((link) => (
+                  <DropdownMenu.Item key={link.href} asChild>
+                    <a
+                      href={link.href}
+                      className="flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    >
+                      {link.label}
+                    </a>
+                  </DropdownMenu.Item>
+                ))}
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">

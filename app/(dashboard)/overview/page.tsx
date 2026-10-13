@@ -9,9 +9,8 @@ import { DischargeVolumeChart } from "@/components/charts/discharge-volume-chart
 import { StatusDonut } from "@/components/charts/status-donut"
 import { TatTrendChart } from "@/components/charts/tat-trend-chart"
 import { PendingByStageChart } from "@/components/charts/pending-by-stage-chart"
-import { QueueTable } from "@/components/queue-table"
 import { DoctorApprovalTable } from "@/components/doctor-approval-table"
-import { ClearanceTile } from "@/components/clearance/clearance-tile"
+import { DeptClearanceTable } from "@/components/dept-clearance-table"
 import { BillingTatMonitor } from "@/components/billing/billing-tat-monitor"
 import { useLiveMetricsContext } from "@/lib/live-metrics-context"
 
@@ -73,9 +72,8 @@ export default function OverviewPage() {
         </Badge>
       </div>
 
-      <section id="overview" className="scroll-mt-24 space-y-4">
+      <section id="overview" className="scroll-mt-24">
         <SummaryCards snapshot={snapshot} />
-        <ClearanceTile />
       </section>
 
       <section id="stages" className="scroll-mt-24 space-y-3">
@@ -105,8 +103,22 @@ export default function OverviewPage() {
         <DoctorApprovalTable />
       </section>
 
-      <section id="queue" className="scroll-mt-24">
-        <QueueTable snapshot={snapshot} />
+      <section id="nursing-clearance" className="scroll-mt-24">
+        <DeptClearanceTable
+          title="Live Nursing Clearance Queue"
+          description="Patients not yet cleared for MGH clearance by nursing departments"
+          endpoint="/api/nursing-clearance"
+          emptyLabel="All nursing clearances completed — no pending patients."
+        />
+      </section>
+
+      <section id="ancillary-clearance" className="scroll-mt-24">
+        <DeptClearanceTable
+          title="Live Ancillary Clearance Queue"
+          description="Patients not yet cleared by ancillary departments (lab, imaging, pharmacy, chemo, dialysis)"
+          endpoint="/api/ancillary-clearance"
+          emptyLabel="All ancillary clearances completed — no pending patients."
+        />
       </section>
 
       <section id="billing-tat" className="scroll-mt-24 space-y-4">

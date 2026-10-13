@@ -62,6 +62,7 @@ function PatientDoctorsModal({
                 <TableHead>Doctor Name</TableHead>
                 <TableHead>Role Type</TableHead>
                 <TableHead>Notify</TableHead>
+                <TableHead>Approved_YN</TableHead>
                 <TableHead className="text-right">Professional Fee</TableHead>
                 <TableHead>Remarks</TableHead>
               </TableRow>
@@ -89,6 +90,19 @@ function PatientDoctorsModal({
                     ) : (
                       <span className="inline-flex items-center rounded-full border bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                         Not yet
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {doctor.approved === null ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : doctor.approved ? (
+                      <span className="inline-flex items-center rounded-full border border-success/20 bg-success/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-success">
+                        Y
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full border border-destructive/20 bg-destructive/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-destructive">
+                        N
                       </span>
                     )}
                   </TableCell>
@@ -202,13 +216,14 @@ export function DoctorApprovalTable() {
                   <TableHead>Doctors</TableHead>
                   <TableHead>Pending</TableHead>
                   <TableHead>Replied</TableHead>
+                  <TableHead>Approved (Y/N)</TableHead>
                   <TableHead>Last Notified</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {patients.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                       {tab === "pending" ? "No approvals awaiting reply." : "No replies yet."}
                     </TableCell>
                   </TableRow>
@@ -245,6 +260,22 @@ export function DoctorApprovalTable() {
                         ) : (
                           <span className="text-muted-foreground">0</span>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const approvedY = patient.doctors.filter((doctor) => doctor.approved === true).length
+                          const approvedN = patient.doctors.filter((doctor) => doctor.approved === false).length
+                          if (approvedY === 0 && approvedN === 0) {
+                            return <span className="text-muted-foreground">—</span>
+                          }
+                          return (
+                            <span className="flex items-center gap-1.5 font-mono text-xs font-semibold">
+                              <span className="text-success">{approvedY} Y</span>
+                              <span className="text-muted-foreground">·</span>
+                              <span className="text-destructive">{approvedN} N</span>
+                            </span>
+                          )
+                        })()}
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                         {patient.lastNotifiedAt ? formatDateTime(patient.lastNotifiedAt) : "—"}

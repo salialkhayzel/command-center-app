@@ -1,6 +1,7 @@
 import { createSnapshot, nextSnapshot, type MetricSnapshot } from "@/lib/metrics"
 import { fetchRealtimeBilling } from "@/lib/billing-live"
 import { fetchRealtimeDoctorApproval } from "@/lib/clearance"
+import { fetchRealtimeAncillaryClearance, fetchRealtimeNursingClearance } from "@/lib/dept-clearance-live"
 
 const encoder = new TextEncoder()
 const REFRESH_MS = Number(process.env.LIVE_REFRESH_MS) || 10_000
@@ -81,6 +82,40 @@ async function buildSnapshot(previous: MetricSnapshot | null): Promise<MetricSna
   } catch (err) {
     console.error(
       "[live-store] real doctor approval data unavailable, using simulated values:",
+      err instanceof Error ? err.message : err
+    )
+  }
+
+  try {
+    const nursing = await fetchRealtimeNursingClearance()
+    const nursingStage = snapshot.stages.find((stage) => stage.key === "nursing")
+    if (nursingStage) {
+      if (nursing.avgTatMinutes !== null) nursingStage.avgMinutes = Math.round(nursing.avgTatMinutes)
+      nursingStage.prevAvgMinutes =
+        nursing.prevAvgTatMinutes !== null ? Math.round(nursing.prevAvgTatMinutes) : nursingStage.avgMinutes
+      nursingStage.pending = nursing.pending
+      nursingStage.samples = nursing.clearedToday
+    }
+  } catch (err) {
+    console.error(
+      "[live-store] real nursing clearance data unavailable, using simulated values:",
+      err instanceof Error ? err.message : err
+    )
+  }
+
+  try {
+    const ancillary = await fetchRealtimeAncillaryClearance()
+    const ancillaryStage = snapshot.stages.find((stage) => stage.key === "ancillary")
+    if (ancillaryStage) {
+      if (ancillary.avgTatMinutes !== null) ancillaryStage.avgMinutes = Math.round(ancillary.avgTatMinutes)
+      ancillaryStage.prevAvgMinutes =
+        ancillary.prevAvgTatMinutes !== null ? Math.round(ancillary.prevAvgTatMinutes) : ancillaryStage.avgMinutes
+      ancillaryStage.pending = ancillary.pending
+      ancillaryStage.samples = ancillary.clearedToday
+    }
+  } catch (err) {
+    console.error(
+      "[live-store] real ancillary clearance data unavailable, using simulated values:",
       err instanceof Error ? err.message : err
     )
   }

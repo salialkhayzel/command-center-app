@@ -1,4 +1,4 @@
-export type StageKey = "doctor_approval" | "nursing" | "ancillary" | "pharmacy" | "billing"
+export type StageKey = "doctor_approval" | "nursing" | "ancillary" | "billing"
 
 export type DischargeStatus = "on-track" | "delayed" | "critical"
 
@@ -50,8 +50,7 @@ export interface MetricSnapshot {
 const STAGE_DEFS: { key: StageKey; label: string; baseline: number; pending: number }[] = [
   { key: "doctor_approval", label: "Doctor Approval", baseline: 52, pending: 7 },
   { key: "nursing", label: "Nursing Clearance", baseline: 68, pending: 9 },
-  { key: "ancillary", label: "Ancillary Results", baseline: 61, pending: 6 },
-  { key: "pharmacy", label: "Pharmacy", baseline: 38, pending: 5 },
+  { key: "ancillary", label: "Ancillary Clearance", baseline: 61, pending: 6 },
   { key: "billing", label: "Billing & Cashier", baseline: 44, pending: 8 },
 ]
 

@@ -29,7 +29,7 @@ const FEATURES = [
   {
     icon: Timer,
     title: "Turnaround analytics",
-    text: "Doctor approval, nursing, ancillary, pharmacy and billing TAT",
+    text: "Doctor approval, nursing, ancillary and billing TAT",
   },
   {
     icon: BarChart3,
