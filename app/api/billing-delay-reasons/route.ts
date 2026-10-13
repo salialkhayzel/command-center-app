@@ -1,24 +1,13 @@
 import { NextRequest } from "next/server"
-import sql from "mssql"
+import { sql } from "@/lib/db-billing"
 import { authenticateRequest } from "@/lib/auth"
 import { errorResponse, successResponse, validationErrorResponse } from "@/lib/api-response"
+import { getBillingDb } from "@/lib/db-billing"
 
 export const dynamic = "force-dynamic"
 
-let billingPool: sql.ConnectionPool | null = null
-
 async function getBillingPool() {
-  if (!billingPool) {
-    billingPool = await new sql.ConnectionPool({
-      server: process.env.DB_SERVER || "",
-      database: process.env.BILLING_DB_DATABASE || process.env.DB_DATABASE || "",
-      user: process.env.DB_USER || "",
-      password: process.env.DB_PASSWORD || "",
-      options: { encrypt: false, trustServerCertificate: true, connectTimeout: 15000 },
-      pool: { max: 5, min: 0, idleTimeoutMillis: 30000 },
-    }).connect()
-  }
-  return billingPool
+  return getBillingDb()
 }
 
 function parseIds(raw: string | null): number[] {

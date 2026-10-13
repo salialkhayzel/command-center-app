@@ -7,15 +7,25 @@ import { usePathname, useRouter } from "next/navigation"
 import { LogOut, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LiveStatus } from "@/components/live-status"
 import { useAuth } from "@/lib/auth-context"
+import { LiveMetricsProvider, useLiveMetricsContext } from "@/lib/live-metrics-context"
 import { cn, initials } from "@/lib/utils"
 
-const NAV_LINKS = [{ label: "Billing TAT", href: "/billing" }]
+const NAV_LINKS = [
+  { label: "Overview", href: "/overview" },
+  { label: "Stage Performance", href: "/overview#stages" },
+  { label: "Trends", href: "/overview#trends" },
+  { label: "Doctor Approval", href: "/overview#doctor-approval" },
+  { label: "Live Queue", href: "/overview#queue" },
+  { label: "Clearance", href: "/clearance" },
+]
 
 function DashboardHeader() {
   const router = useRouter()
   const pathname = usePathname()
   const { user, logout } = useAuth()
+  const { snapshot, connected } = useLiveMetricsContext()
 
   const handleLogout = () => {
     logout()
@@ -55,6 +65,7 @@ function DashboardHeader() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <LiveStatus connected={connected} updatedAt={snapshot?.generatedAt} />
           <ThemeToggle />
           <div className="hidden items-center gap-2.5 rounded-full border py-1 pl-1 pr-3 md:flex">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
@@ -105,9 +116,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <DashboardHeader />
-      <main className="mx-auto max-w-[1600px] px-4 py-6 lg:px-6">{children}</main>
-    </div>
+    <LiveMetricsProvider>
+      <div className="min-h-screen bg-muted/30">
+        <DashboardHeader />
+        <main className="mx-auto max-w-[1600px] px-4 py-6 lg:px-6">{children}</main>
+      </div>
+    </LiveMetricsProvider>
   )
 }

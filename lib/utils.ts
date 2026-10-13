@@ -31,6 +31,25 @@ export function fullDateTime(value: string | null | undefined): string {
   return value.slice(0, 16)
 }
 
+export function formatDateTime(value: string | null | undefined): string {
+  if (!value) return "—"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+  return date.toLocaleString("en-PH", {
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+export function formatTimeOnly(value: string | null | undefined): string {
+  if (!value) return "—"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+  return date.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" })
+}
+
 export function localToday(): string {
   return new Date().toLocaleDateString("en-CA")
 }
