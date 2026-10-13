@@ -561,16 +561,26 @@ export async function fetchRealtimeDoctorApproval(): Promise<RealtimeDoctorAppro
   const toNum = (value: unknown): number | null =>
     value === null || value === undefined ? null : Number(value)
 
+  // Average time = sum of all doctors' TAT (Date_Created -> Date_Replied) divided by the number of doctors.
   const [currentRows] = await mysql.query<RowDataPacket[]>(`
-    SELECT AVG(TIMESTAMPDIFF(MINUTE, Date_Created, Date_Replied)) as avgTat
+    SELECT SUM(TIMESTAMPDIFF(MINUTE, Date_Created, Date_Replied)) / NULLIF(COUNT(*), 0) as avgTat
     FROM doctor_approval_notifier
     WHERE Date_Replied >= DATE_SUB(NOW(), INTERVAL 7 DAY)`)
 
   const [previousRows] = await mysql.query<RowDataPacket[]>(`
-    SELECT AVG(TIMESTAMPDIFF(MINUTE, Date_Created, Date_Replied)) as avgTat
+    SELECT SUM(TIMESTAMPDIFF(MINUTE, Date_Created, Date_Replied)) / NULLIF(COUNT(*), 0) as avgTat
     FROM doctor_approval_notifier
     WHERE Date_Replied < DATE_SUB(NOW(), INTERVAL 7 DAY)
       AND Date_Replied >= DATE_SUB(NOW(), INTERVAL 14 DAY)`)
+
+  let avgTatMinutes = toNum(currentRows[0]?.avgTat)
+  if (avgTatMinutes === null) {
+    const [allRows] = await mysql.query<RowDataPacket[]>(`
+      SELECT SUM(TIMESTAMPDIFF(MINUTE, Date_Created, Date_Replied)) / NULLIF(COUNT(*), 0) as avgTat
+      FROM doctor_approval_notifier
+      WHERE Date_Replied IS NOT NULL`)
+    avgTatMinutes = toNum(allRows[0]?.avgTat)
+  }
 
   const [pendingRows] = await mysql.query<RowDataPacket[]>(`
     SELECT COUNT(*) as n FROM doctor_approval_notifier WHERE Date_Replied IS NULL`)
@@ -579,7 +589,7 @@ export async function fetchRealtimeDoctorApproval(): Promise<RealtimeDoctorAppro
     SELECT COUNT(*) as n FROM doctor_approval_notifier WHERE DATE(Date_Replied) = CURDATE()`)
 
   return {
-    avgTatMinutes: toNum(currentRows[0]?.avgTat),
+    avgTatMinutes,
     prevAvgTatMinutes: toNum(previousRows[0]?.avgTat),
     pending: Number(pendingRows[0]?.n ?? 0),
     repliedToday: Number(todayRows[0]?.n ?? 0),
