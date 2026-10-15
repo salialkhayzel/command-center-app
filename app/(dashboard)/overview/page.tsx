@@ -13,6 +13,7 @@ import { ExecutiveOverview } from "@/components/charts/executive-overview"
 import { DoctorApprovalTable } from "@/components/doctor-approval-table"
 import { DeptClearanceTable } from "@/components/dept-clearance-table"
 import { BillingCashierTable } from "@/components/billing-cashier-table"
+import { OnTrackTable } from "@/components/on-track-table"
 import { useLiveMetricsContext } from "@/lib/live-metrics-context"
 
 function OverviewSkeleton() {
@@ -134,6 +135,10 @@ export default function OverviewPage() {
 
       <section id="billing-cashier" className="scroll-mt-24">
         <BillingCashierTable />
+      </section>
+
+      <section id="ontrack" className="scroll-mt-24">
+        <OnTrackTable />
       </section>
     </div>
   )
