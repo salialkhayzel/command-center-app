@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SummaryCards } from "@/components/charts/summary-cards"
 import { StageCards } from "@/components/charts/stage-cards"
-import { DischargeVolumeChart } from "@/components/charts/discharge-volume-chart"
-import { StatusDonut } from "@/components/charts/status-donut"
-import { TatTrendChart } from "@/components/charts/tat-trend-chart"
+import { BottleneckChart } from "@/components/charts/bottleneck-chart"
+import { ComplianceChart } from "@/components/charts/compliance-chart"
+import { BedManagementChart } from "@/components/charts/bed-management-chart"
 import { PendingByStageChart } from "@/components/charts/pending-by-stage-chart"
+import { ExecutiveOverview } from "@/components/charts/executive-overview"
 import { DoctorApprovalTable } from "@/components/doctor-approval-table"
 import { DeptClearanceTable } from "@/components/dept-clearance-table"
-import { BillingTatMonitor } from "@/components/billing/billing-tat-monitor"
+import { BillingCashierTable } from "@/components/billing-cashier-table"
 import { useLiveMetricsContext } from "@/lib/live-metrics-context"
 
 function OverviewSkeleton() {
@@ -88,14 +89,15 @@ export default function OverviewPage() {
           Trends &amp; Analytics
         </h2>
         <div className="grid gap-4 xl:grid-cols-3">
-          <div className="xl:col-span-2">
-            <DischargeVolumeChart snapshot={snapshot} />
-          </div>
-          <StatusDonut snapshot={snapshot} />
+          <ComplianceChart />
+          <BottleneckChart />
+          <ExecutiveOverview />
         </div>
-        <div className="grid gap-4 xl:grid-cols-2">
-          <TatTrendChart snapshot={snapshot} />
+        <div className="grid gap-4 xl:grid-cols-3">
           <PendingByStageChart snapshot={snapshot} />
+          <div className="xl:col-span-2">
+            <BedManagementChart />
+          </div>
         </div>
       </section>
 
@@ -115,17 +117,23 @@ export default function OverviewPage() {
       <section id="ancillary-clearance" className="scroll-mt-24">
         <DeptClearanceTable
           title="Live Ancillary Clearance Queue"
-          description="Patients not yet cleared by ancillary departments (lab, imaging, pharmacy, chemo, dialysis)"
+          description="Patients not yet cleared by ancillary departments (lab, imaging, chemo, dialysis)"
           endpoint="/api/ancillary-clearance"
           emptyLabel="All ancillary clearances completed — no pending patients."
         />
       </section>
 
-      <section id="billing-tat" className="scroll-mt-24 space-y-4">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Billing TAT
-        </h2>
-        <BillingTatMonitor />
+      <section id="pharmacy-clearance" className="scroll-mt-24">
+        <DeptClearanceTable
+          title="Live Pharmacy Clearance Queue"
+          description="Patients not yet cleared by Pharmacy — Main"
+          endpoint="/api/pharmacy-clearance"
+          emptyLabel="All pharmacy clearances completed — no pending patients."
+        />
+      </section>
+
+      <section id="billing-cashier" className="scroll-mt-24">
+        <BillingCashierTable />
       </section>
     </div>
   )

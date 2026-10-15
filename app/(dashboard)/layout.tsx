@@ -23,6 +23,7 @@ const NAV_LINKS = [
 const CLEARANCE_LINKS = [
   { label: "Nursing Clearance", href: "/overview#nursing-clearance" },
   { label: "Ancillary Clearance", href: "/overview#ancillary-clearance" },
+  { label: "Pharmacy Clearance", href: "/overview#pharmacy-clearance" },
 ]
 
 function DashboardHeader() {

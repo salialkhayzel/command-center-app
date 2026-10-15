@@ -22,6 +22,7 @@ export function SummaryCards({ snapshot }: SummaryCardsProps) {
       hint: "currently in process",
       icon: Users,
       accent: "text-info",
+      valueClassName: null as string | null,
       delta: null as string | null,
       positive: true,
     },
@@ -31,15 +32,17 @@ export function SummaryCards({ snapshot }: SummaryCardsProps) {
       hint: "discharged patients",
       icon: CheckCircle2,
       accent: "text-success",
+      valueClassName: null as string | null,
       delta: null as string | null,
       positive: true,
     },
     {
-      label: "Avg Total TAT",
+      label: "Current Discharge TAT",
       value: formatMinutes(snapshot.avgTotalMinutes),
-      hint: "MGH tag → final bill",
+      hint: "MGH tag → billing discharge · target 3h",
       icon: Timer,
-      accent: "text-chart-4",
+      accent: snapshot.avgTotalMinutes > 180 ? "text-destructive" : "text-primary",
+      valueClassName: snapshot.avgTotalMinutes > 180 ? "text-destructive" : null,
       delta: `${totalDelta > 0 ? "+" : ""}${totalDelta}% vs yesterday`,
       positive: totalDelta <= 0,
     },
@@ -49,6 +52,7 @@ export function SummaryCards({ snapshot }: SummaryCardsProps) {
       hint: `${snapshot.delayed} delayed · ${snapshot.critical} critical`,
       icon: Activity,
       accent: "text-warning",
+      valueClassName: null as string | null,
       delta: null as string | null,
       positive: true,
     },
@@ -63,7 +67,10 @@ export function SummaryCards({ snapshot }: SummaryCardsProps) {
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {card.label}
               </p>
-              <p className="text-2xl font-bold tabular-nums tracking-tight">{card.value}</p>
+              <p className={cn("text-2xl font-bold tabular-nums tracking-tight", card.valueClassName)}>
+                {card.value}
+              </p>
+              <p className="text-xs text-muted-foreground">{card.hint}</p>
               {card.delta ? (
                 <p
                   className={cn(
@@ -73,9 +80,7 @@ export function SummaryCards({ snapshot }: SummaryCardsProps) {
                 >
                   {card.delta}
                 </p>
-              ) : (
-                <p className="text-xs text-muted-foreground">{card.hint}</p>
-              )}
+              ) : null}
             </div>
             <div className="rounded-lg bg-muted p-2.5">
               <card.icon className={cn("h-5 w-5", card.accent)} />

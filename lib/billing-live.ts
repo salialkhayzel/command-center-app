@@ -11,6 +11,59 @@ export interface RealtimeBilling {
   prevAvgCompleted: number | null
 }
 
+export interface RealtimeDischargeTat {
+  avgTatMinutes: number | null
+  prevAvgTatMinutes: number | null
+  completedToday: number
+}
+
+export async function fetchRealtimeDischargeTat(): Promise<RealtimeDischargeTat> {
+  const { pool } = await getDb()
+
+  const base = `
+    FROM pspatregisters a
+    WHERE a.pattrantype = 'I'
+      AND a.mghdatetime IS NOT NULL
+      AND (a.untagmghdatetime IS NULL OR a.untagmghdatetime < a.mghdatetime)
+      AND a.billingdischdatetime IS NOT NULL
+      AND a.billingdischdatetime >= a.mghdatetime
+      AND ${RVS_77_EXCLUSION}`
+
+  const avgExpr = `AVG(CAST(DATEDIFF(MINUTE, a.mghdatetime, a.billingdischdatetime) AS FLOAT))`
+
+  const [todayResult, previousResult, countResult] = await Promise.all([
+    pool.request().query(`
+      SELECT ${avgExpr} as avgTat
+      ${base}
+        AND CONVERT(date, a.billingdischdatetime) = CONVERT(date, GETDATE())`),
+    pool.request().query(`
+      SELECT ${avgExpr} as avgTat
+      ${base}
+        AND CONVERT(date, a.billingdischdatetime) = CONVERT(date, DATEADD(DAY, -1, GETDATE()))`),
+    pool.request().query(`
+      SELECT COUNT(*) as n
+      ${base}
+        AND CONVERT(date, a.billingdischdatetime) = CONVERT(date, GETDATE())`),
+  ])
+
+  const toNullable = (value: unknown): number | null =>
+    value === null || value === undefined ? null : Number(value)
+
+  let avgTatMinutes = toNullable(todayResult.recordset[0]?.avgTat)
+  if (avgTatMinutes === null) {
+    const allResult = await pool.request().query(`
+      SELECT ${avgExpr} as avgTat
+      ${base}`)
+    avgTatMinutes = toNullable(allResult.recordset[0]?.avgTat)
+  }
+
+  return {
+    avgTatMinutes,
+    prevAvgTatMinutes: toNullable(previousResult.recordset[0]?.avgTat),
+    completedToday: Number(countResult.recordset[0]?.n ?? 0),
+  }
+}
+
 const BASE_FILTER = `
   FROM pspatregisters a
   WHERE a.pattrantype = 'I'

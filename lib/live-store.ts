@@ -1,7 +1,7 @@
 import { createSnapshot, nextSnapshot, type MetricSnapshot } from "@/lib/metrics"
-import { fetchRealtimeBilling } from "@/lib/billing-live"
+import { fetchRealtimeBilling, fetchRealtimeDischargeTat } from "@/lib/billing-live"
 import { fetchRealtimeDoctorApproval } from "@/lib/clearance"
-import { fetchRealtimeAncillaryClearance, fetchRealtimeNursingClearance } from "@/lib/dept-clearance-live"
+import { fetchRealtimeAncillaryClearance, fetchRealtimeNursingClearance, fetchRealtimePharmacyClearance } from "@/lib/dept-clearance-live"
 
 const encoder = new TextEncoder()
 const REFRESH_MS = Number(process.env.LIVE_REFRESH_MS) || 10_000
@@ -40,7 +40,7 @@ function encodeEvent(snapshot: MetricSnapshot): Uint8Array {
 async function buildSnapshot(previous: MetricSnapshot | null): Promise<MetricSnapshot> {
   const snapshot = nextSnapshot(previous)
   try {
-    const real = await fetchRealtimeBilling()
+    const [real, discharge] = await Promise.all([fetchRealtimeBilling(), fetchRealtimeDischargeTat()])
     state().warned = false
 
     const billing = snapshot.stages.find((stage) => stage.key === "billing")
@@ -52,9 +52,12 @@ async function buildSnapshot(previous: MetricSnapshot | null): Promise<MetricSna
     }
     snapshot.activeDischarges = real.activeAwaiting
     snapshot.completedToday = real.completedToday
-    snapshot.avgTotalMinutes = real.avgCompletedToday === null ? 0 : Math.round(real.avgCompletedToday)
+    snapshot.avgTotalMinutes =
+      discharge.avgTatMinutes === null ? 0 : Math.round(discharge.avgTatMinutes)
     snapshot.prevAvgTotalMinutes =
-      real.prevAvgCompleted === null ? snapshot.avgTotalMinutes : Math.round(real.prevAvgCompleted)
+      discharge.prevAvgTatMinutes === null
+        ? snapshot.avgTotalMinutes
+        : Math.round(discharge.prevAvgTatMinutes)
     snapshot.onTrack = real.withinTargetToday
     snapshot.delayed = real.delayedToday
     snapshot.critical = real.criticalToday
@@ -116,6 +119,23 @@ async function buildSnapshot(previous: MetricSnapshot | null): Promise<MetricSna
   } catch (err) {
     console.error(
       "[live-store] real ancillary clearance data unavailable, using simulated values:",
+      err instanceof Error ? err.message : err
+    )
+  }
+
+  try {
+    const pharmacy = await fetchRealtimePharmacyClearance()
+    const pharmacyStage = snapshot.stages.find((stage) => stage.key === "pharmacy")
+    if (pharmacyStage) {
+      if (pharmacy.avgTatMinutes !== null) pharmacyStage.avgMinutes = Math.round(pharmacy.avgTatMinutes)
+      pharmacyStage.prevAvgMinutes =
+        pharmacy.prevAvgTatMinutes !== null ? Math.round(pharmacy.prevAvgTatMinutes) : pharmacyStage.avgMinutes
+      pharmacyStage.pending = pharmacy.pending
+      pharmacyStage.samples = pharmacy.clearedToday
+    }
+  } catch (err) {
+    console.error(
+      "[live-store] real pharmacy clearance data unavailable, using simulated values:",
       err instanceof Error ? err.message : err
     )
   }

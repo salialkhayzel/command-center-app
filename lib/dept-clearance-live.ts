@@ -9,10 +9,13 @@ export interface RealtimeDeptClearance {
 
 const NURSING_WAREHOUSES = [1020, 1021, 1022, 1023, 1025, 1027, 1038, 1039, 1040, 1041, 1042, 1043, 1044, 1045, 1067]
 
-const ANCILLARY_WAREHOUSES = [1001, 1002, 1003, 1006, 1007, 1008, 1046, 1062]
+const ANCILLARY_WAREHOUSES = [1001, 1002, 1006, 1007, 1008, 1046, 1062]
+
+const PHARMACY_WAREHOUSES = [1003]
 
 export const NURSING_WAREHOUSE_IDS = NURSING_WAREHOUSES
 export const ANCILLARY_WAREHOUSE_IDS = ANCILLARY_WAREHOUSES
+export const PHARMACY_WAREHOUSE_IDS = PHARMACY_WAREHOUSES
 
 export interface PendingDeptClearanceRow {
   id: number
@@ -120,4 +123,8 @@ export async function fetchRealtimeNursingClearance(): Promise<RealtimeDeptClear
 
 export async function fetchRealtimeAncillaryClearance(): Promise<RealtimeDeptClearance> {
   return fetchDeptClearance(ANCILLARY_WAREHOUSES)
+}
+
+export async function fetchRealtimePharmacyClearance(): Promise<RealtimeDeptClearance> {
+  return fetchDeptClearance(PHARMACY_WAREHOUSES)
 }

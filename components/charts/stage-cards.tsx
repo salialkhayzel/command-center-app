@@ -3,6 +3,7 @@
 import {
   BedDouble,
   FlaskConical,
+  Pill,
   Receipt,
   Stethoscope,
   TrendingDown,
@@ -18,6 +19,7 @@ const STAGE_META: Record<StageKey, { icon: LucideIcon; target: number }> = {
   doctor_approval: { icon: Stethoscope, target: 60 },
   nursing: { icon: BedDouble, target: 90 },
   ancillary: { icon: FlaskConical, target: 90 },
+  pharmacy: { icon: Pill, target: 60 },
   billing: { icon: Receipt, target: 20 },
 }
 
@@ -27,6 +29,8 @@ export function StageCards({ snapshot }: { snapshot: MetricSnapshot }) {
       doctor_approval: "doctor-approval",
       nursing: "nursing-clearance",
       ancillary: "ancillary-clearance",
+      pharmacy: "pharmacy-clearance",
+      billing: "billing-cashier",
     }
     const targetId = targets[key]
     if (!targetId) return
@@ -42,8 +46,7 @@ export function StageCards({ snapshot }: { snapshot: MetricSnapshot }) {
         const improving = diff <= 0
         const load = Math.min(100, Math.round((stage.avgMinutes / meta.target) * 100))
         const overTarget = stage.avgMinutes > meta.target
-        const clickable =
-          stage.key === "doctor_approval" || stage.key === "nursing" || stage.key === "ancillary"
+        const clickable = true
 
         return (
           <Card
