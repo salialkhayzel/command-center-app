@@ -25,6 +25,13 @@ export async function GET() {
         AND CONVERT(date, a.billingdischdatetime) = CONVERT(date, GETDATE())
         AND ${RVS_77_EXCLUSION}`)
 
+    const exitedResult = await pool.request().query(`
+      SELECT COUNT(*) as exitedToday
+      FROM pspatregisters a
+      WHERE a.pattrantype = 'I'
+        AND a.dischdate IS NOT NULL
+        AND CONVERT(date, a.dischdate) = CONVERT(date, GETDATE())`)
+
     const row = result.recordset[0] ?? {}
     const completedToday = Number(row.completedToday ?? 0)
     const avgTat = row.avgTat === null || row.avgTat === undefined ? null : Math.round(Number(row.avgTat))
@@ -38,6 +45,7 @@ export async function GET() {
       withinTarget,
       overTarget,
       withinPercent: completedToday > 0 ? Math.round((withinTarget / completedToday) * 100) : null,
+      exitedToday: Number(exitedResult.recordset[0]?.exitedToday ?? 0),
       generatedAt: new Date().toISOString(),
     })
   } catch (err) {

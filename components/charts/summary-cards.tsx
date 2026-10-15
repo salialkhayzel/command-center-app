@@ -28,9 +28,9 @@ export function SummaryCards({ snapshot }: SummaryCardsProps) {
       targetId: null as string | null,
     },
     {
-      label: "Completed Today",
+      label: "Final Bills Today",
       value: formatNumber(snapshot.completedToday),
-      hint: "discharged patients",
+      hint: "final bill tagged · awaiting billing discharge",
       icon: CheckCircle2,
       accent: "text-success",
       valueClassName: null as string | null,

@@ -39,6 +39,7 @@ export async function fetchPendingDeptClearances(warehouseIds: number[]): Promis
       CONVERT(varchar(19), n.notifydate, 120) as NotifiedAt,
       DATEDIFF(MINUTE, n.notifydate, GETDATE()) as WaitingMinutes
     FROM psNotifyDeptFPD n
+    INNER JOIN pspatregisters a ON a.PK_psPatRegisters = n.FK_psPatRegisters
     LEFT JOIN mscWarehouse wh ON wh.PK_mscWarehouse = n.FK_mscWarehouse
     OUTER APPLY (
       SELECT TOP 1 ar.bedno as RoomNo FROM psAdmRooms ar
@@ -48,6 +49,7 @@ export async function fetchPendingDeptClearances(warehouseIds: number[]): Promis
       AND n.isNotify = 1
       AND (n.isClearFPD = 0 OR n.clearFPDDate IS NULL)
       AND n.notifydate >= DATEADD(DAY, -7, GETDATE())
+      AND a.pattrantype = 'I'
     ORDER BY n.notifydate ASC`)
 
   return result.recordset.map((row) => ({
@@ -70,11 +72,13 @@ async function fetchDeptClearance(warehouseIds: number[]): Promise<RealtimeDeptC
 
   const baseFilter = `
     FROM psNotifyDeptFPD n
+    INNER JOIN pspatregisters a ON a.PK_psPatRegisters = n.FK_psPatRegisters
     WHERE n.FK_mscWarehouse IN (${list})
       AND n.isNotify = 1
       AND n.isClearFPD = 1
       AND n.clearFPDDate IS NOT NULL
-      AND n.clearFPDDate >= n.notifydate`
+      AND n.clearFPDDate >= n.notifydate
+      AND a.pattrantype = 'I'`
 
   // Average time = sum of all department TATs (notifydate -> clearFPDDate) divided by the number of clearances.
   const currentResult = await pool.request().query(`
@@ -99,10 +103,12 @@ async function fetchDeptClearance(warehouseIds: number[]): Promise<RealtimeDeptC
   const pendingResult = await pool.request().query(`
     SELECT COUNT(*) as n
     FROM psNotifyDeptFPD n
+    INNER JOIN pspatregisters a ON a.PK_psPatRegisters = n.FK_psPatRegisters
     WHERE n.FK_mscWarehouse IN (${list})
       AND n.isNotify = 1
       AND (n.isClearFPD = 0 OR n.clearFPDDate IS NULL)
-      AND n.notifydate >= DATEADD(DAY, -30, GETDATE())`)
+      AND n.notifydate >= DATEADD(DAY, -30, GETDATE())
+      AND a.pattrantype = 'I'`)
 
   const todayResult = await pool.request().query(`
     SELECT COUNT(*) as n

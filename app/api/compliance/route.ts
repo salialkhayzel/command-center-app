@@ -29,9 +29,11 @@ export async function GET() {
         SELECT COUNT(*) as notified,
           SUM(CASE WHEN n.isClearFPD = 1 AND n.clearFPDDate IS NOT NULL THEN 1 ELSE 0 END) as cleared
         FROM psNotifyDeptFPD n
+        INNER JOIN pspatregisters a ON a.PK_psPatRegisters = n.FK_psPatRegisters
         WHERE n.FK_mscWarehouse IN (${ALL_CLEARANCE_WAREHOUSES.join(", ")})
           AND n.isNotify = 1
-          AND CONVERT(date, n.notifydate) = CONVERT(date, GETDATE())`),
+          AND CONVERT(date, n.notifydate) = CONVERT(date, GETDATE())
+          AND a.pattrantype = 'I'`),
       pool.request().query(`
         SELECT COUNT(*) as tagged
         FROM pspatregisters a

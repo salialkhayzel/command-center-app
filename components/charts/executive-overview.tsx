@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { CheckCircle2, RefreshCw, Timer, TrendingDown, TrendingUp } from "lucide-react"
+import { CheckCircle2, DoorOpen, RefreshCw, Timer, TrendingDown, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn, formatMinutes, formatNumber } from "@/lib/utils"
@@ -15,6 +15,7 @@ interface ExecutiveOverviewData {
   withinTarget: number
   overTarget: number
   withinPercent: number | null
+  exitedToday: number
 }
 
 export function ExecutiveOverview() {
@@ -118,14 +119,23 @@ export function ExecutiveOverview() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-lg border p-3">
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-              Discharges Today
+              Billing Discharges Today
             </p>
             <p className="mt-1 text-xl font-bold tabular-nums">
               {data ? formatNumber(data.completedToday) : "—"}
+            </p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <DoorOpen className="h-3.5 w-3.5 text-success" />
+              Fully Discharged Today
+            </p>
+            <p className="mt-1 text-xl font-bold tabular-nums">
+              {data ? formatNumber(data.exitedToday) : "—"}
             </p>
           </div>
           <div className="rounded-lg border p-3">

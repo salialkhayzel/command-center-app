@@ -405,17 +405,20 @@ export async function getDoctorApprovals(
       request.input(`p${index}`, sql.Int, id)
       return `@p${index}`
     })
-    const result = await request.query(`
-      SELECT a.PK_psPatRegisters, dbo.udf_GetFullName(a.FK_emdPatients) as PatientName,
-        CASE WHEN a.dischdate IS NOT NULL OR a.registrystatus = 'D' THEN 1 ELSE 0 END as IsDischarged
-      FROM pspatregisters a WHERE a.PK_psPatRegisters IN (${placeholders.join(",")})`)
-    const known = new Set<number>()
-    for (const row of result.recordset) {
-      const pk = Number(row.PK_psPatRegisters)
-      known.add(pk)
-      patientNames.set(pk, String(row.PatientName ?? "").trim())
-      if (Number(row.IsDischarged) === 0) activeRegistries.add(pk)
-    }
+      const result = await request.query(`
+        SELECT a.PK_psPatRegisters, dbo.udf_GetFullName(a.FK_emdPatients) as PatientName,
+          CASE WHEN a.dischdate IS NOT NULL OR a.registrystatus = 'D' THEN 1 ELSE 0 END as IsDischarged,
+          a.pattrantype
+        FROM pspatregisters a WHERE a.PK_psPatRegisters IN (${placeholders.join(",")})`)
+      const known = new Set<number>()
+      for (const row of result.recordset) {
+        const pk = Number(row.PK_psPatRegisters)
+        known.add(pk)
+        patientNames.set(pk, String(row.PatientName ?? "").trim())
+        if (Number(row.IsDischarged) === 0 && String(row.pattrantype ?? "").trim() === "I") {
+          activeRegistries.add(pk)
+        }
+      }
     for (const pk of allRegistryPks) {
       if (!known.has(pk)) activeRegistries.add(pk)
     }
@@ -561,16 +564,47 @@ export async function fetchRealtimeDoctorApproval(): Promise<RealtimeDoctorAppro
   const toNum = (value: unknown): number | null =>
     value === null || value === undefined ? null : Number(value)
 
+  const empty: RealtimeDoctorApproval = {
+    avgTatMinutes: null,
+    prevAvgTatMinutes: null,
+    pending: 0,
+    repliedToday: 0,
+  }
+
+  const [registryRows] = await mysql.query<RowDataPacket[]>(`
+    SELECT DISTINCT Registry_No FROM doctor_approval_notifier`)
+  const registryIds = registryRows
+    .map((row) => Number(row.Registry_No))
+    .filter((id) => Number.isFinite(id) && id > 0)
+
+  if (registryIds.length === 0) return empty
+
+  const his = await getDb()
+  const request = his.pool.request()
+  const placeholders = registryIds.map((id, index) => {
+    request.input(`r${index}`, sql.Int, id)
+    return `@r${index}`
+  })
+  const inpatientResult = await request.query(`
+    SELECT PK_psPatRegisters FROM pspatregisters
+    WHERE PK_psPatRegisters IN (${placeholders.join(",")}) AND pattrantype = 'I'`)
+  const inpatientIds = inpatientResult.recordset.map((row) => Number(row.PK_psPatRegisters))
+
+  if (inpatientIds.length === 0) return empty
+  const inList = inpatientIds.join(",")
+
   // Average time = sum of all doctors' TAT (Date_Created -> Date_Replied) divided by the number of doctors.
   const [currentRows] = await mysql.query<RowDataPacket[]>(`
     SELECT SUM(TIMESTAMPDIFF(MINUTE, Date_Created, Date_Replied)) / NULLIF(COUNT(*), 0) as avgTat
     FROM doctor_approval_notifier
-    WHERE Date_Replied >= DATE_SUB(NOW(), INTERVAL 7 DAY)`)
+    WHERE Registry_No IN (${inList})
+      AND Date_Replied >= DATE_SUB(NOW(), INTERVAL 7 DAY)`)
 
   const [previousRows] = await mysql.query<RowDataPacket[]>(`
     SELECT SUM(TIMESTAMPDIFF(MINUTE, Date_Created, Date_Replied)) / NULLIF(COUNT(*), 0) as avgTat
     FROM doctor_approval_notifier
-    WHERE Date_Replied < DATE_SUB(NOW(), INTERVAL 7 DAY)
+    WHERE Registry_No IN (${inList})
+      AND Date_Replied < DATE_SUB(NOW(), INTERVAL 7 DAY)
       AND Date_Replied >= DATE_SUB(NOW(), INTERVAL 14 DAY)`)
 
   let avgTatMinutes = toNum(currentRows[0]?.avgTat)
@@ -578,15 +612,17 @@ export async function fetchRealtimeDoctorApproval(): Promise<RealtimeDoctorAppro
     const [allRows] = await mysql.query<RowDataPacket[]>(`
       SELECT SUM(TIMESTAMPDIFF(MINUTE, Date_Created, Date_Replied)) / NULLIF(COUNT(*), 0) as avgTat
       FROM doctor_approval_notifier
-      WHERE Date_Replied IS NOT NULL`)
+      WHERE Registry_No IN (${inList}) AND Date_Replied IS NOT NULL`)
     avgTatMinutes = toNum(allRows[0]?.avgTat)
   }
 
   const [pendingRows] = await mysql.query<RowDataPacket[]>(`
-    SELECT COUNT(*) as n FROM doctor_approval_notifier WHERE Date_Replied IS NULL`)
+    SELECT COUNT(*) as n FROM doctor_approval_notifier
+    WHERE Registry_No IN (${inList}) AND Date_Replied IS NULL`)
 
   const [todayRows] = await mysql.query<RowDataPacket[]>(`
-    SELECT COUNT(*) as n FROM doctor_approval_notifier WHERE DATE(Date_Replied) = CURDATE()`)
+    SELECT COUNT(*) as n FROM doctor_approval_notifier
+    WHERE Registry_No IN (${inList}) AND DATE(Date_Replied) = CURDATE()`)
 
   return {
     avgTatMinutes,
